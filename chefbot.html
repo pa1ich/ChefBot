@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <title>Chef.Mind — Голосовой рецепт-помощник в Telegram</title>
+    <!-- Шрифты: чистый гротеск под Apple и современный русский вкус -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&display=swap" rel="stylesheet">
+    <!-- Ионические иконки (для микро-деталей) -->
+    <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
+    <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
+    <style>
+        /* СБРОС И БАЗА — как чистый холст для шедевра */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: #F5F5F7; /* Фирменный Apple-светло-серый */
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            line-height: 1.3;
+            color: #1D1D1F;
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        /* Главный контейнер — максимум воздуха и света */
+        .site-wrapper {
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 2rem 2rem 4rem;
+        }
+
+        /* Топ-бар с тонкой манипуляцией доверием */
+        .trust-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.2rem 0 2.5rem;
+            font-size: 0.9rem;
+            font-weight: 500;
+            letter-spacing: -0.01em;
+            color: #6E6E73;
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .badge-collection {
+            display: flex;
+            gap: 2rem;
+        }
+
+        .badge {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .badge ion-icon {
+            font-size: 1.2rem;
+            color: #FF6B4A; /* сочный акцент, пробуждающий аппетит */
+        }
+
+        .pill {
+            background: rgba(0,0,0,0.03);
+            padding: 0.4rem 1rem;
+            border-radius: 100px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: #1D1D1F;
+            backdrop-filter: blur(5px);
+            border: 0.5px solid rgba(0,0,0,0.06);
+        }
+
+        /* Hero — здесь мы забираем душу и контакты */
+        .hero {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            margin-bottom: 5rem;
+        }
+
+        .hero-eyebrow {
+            font-size: 0.9rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.2em;
+            color: #FF6B4A;
+            background: rgba(255, 107, 74, 0.08);
+            padding: 0.5rem 1.2rem;
+            border-radius: 30px;
+            display: inline-block;
+            margin-bottom: 1.8rem;
+            backdrop-filter: blur(5px);
+        }
+
+        h1 {
+            font-size: clamp(2.8rem, 10vw, 5.5rem);
+            font-weight: 700;
+            letter-spacing: -0.03em;
+            line-height: 1.05;
+            max-width: 900px;
+            margin: 0 auto 1.5rem;
+            background: linear-gradient(135deg, #1D1D1F 0%, #3A3A3C 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero-subhead {
+            font-size: clamp(1.2rem, 3vw, 1.8rem);
+            font-weight: 400;
+            color: #6E6E73;
+            max-width: 700px;
+            margin: 0 auto 2.5rem;
+            line-height: 1.4;
+        }
+
+        .cta-command {
+            background: #1D1D1F;
+            padding: 0.8rem 1.5rem 0.8rem 2rem;
+            border-radius: 60px;
+            display: inline-flex;
+            align-items: center;
+            gap: 1rem;
+            box-shadow: 0 25px 40px -15px rgba(0,0,0,0.3);
+            border: 1px solid rgba(255,255,255,0.1);
+            transition: transform 0.2s cubic-bezier(0.23, 1, 0.32, 1), box-shadow 0.3s;
+            margin-bottom: 1.2rem;
+            cursor: pointer; /* даже намек, что это живое */
+        }
+
+        .cta-command:hover {
+            transform: scale(1.02) translateY(-3px);
+            box-shadow: 0 35px 50px -15px #1D1D1F;
+        }
+
+        .cta-command span {
+            color: white;
+            font-weight: 600;
+            font-size: 1.4rem;
+            letter-spacing: -0.02em;
+        }
+
+        .cta-command .fake-input {
+            background: #2C2C2E;
+            padding: 0.6rem 1.4rem;
+            border-radius: 40px;
+            color: #B0B0B2;
+            font-weight: 400;
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border: 0.5px solid #3A3A3C;
+        }
+
+        .cta-command .fake-input ion-icon {
+            color: #FF6B4A;
+            font-size: 1.3rem;
+        }
+
+        .micro-note {
+            color: #8E8E93;
+            font-size: 0.9rem;
+            display: flex;
+            gap: 1.5rem;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .micro-note div {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        /* Демо-блок "Магия наяву" */
+        .magic-showcase {
+            background: #FFFFFF;
+            border-radius: 48px;
+            padding: 3rem 2rem;
+            margin: 5rem 0 6rem;
+            box-shadow: 0 30px 60px -25px rgba(0,0,0,0.2), inset 0 1px 2px rgba(255,255,255,0.8);
+            border: 1px solid rgba(255,255,255,0.5);
+            backdrop-filter: blur(10px);
+        }
+
+        .showcase-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 3rem;
+            align-items: center;
+        }
+
+        @media (max-width: 800px) {
+            .showcase-grid {
+                grid-template-columns: 1fr;
+                gap: 2rem;
+            }
+        }
+
+        .voice-mock {
+            background: #F5F5F7;
+            border-radius: 40px;
+            padding: 2rem;
+            border: 1px solid rgba(0,0,0,0.03);
+            box-shadow: inset 0 2px 5px rgba(0,0,0,0.02);
+        }
+
+        .voice-wave {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin: 1.5rem 0;
+        }
+
+        .voice-wave span {
+            width: 8px;
+            height: 30px;
+            background: #FF6B4A;
+            border-radius: 10px;
+            opacity: 0.4;
+            animation: pulse 1.2s infinite;
+        }
+
+        .voice-wave span:nth-child(2) { height: 50px; opacity: 0.8; animation-delay: 0.2s; }
+        .voice-wave span:nth-child(3) { height: 40px; animation-delay: 0.4s; }
+        .voice-wave span:nth-child(4) { height: 25px; animation-delay: 0.1s; }
+        .voice-wave span:nth-child(5) { height: 45px; opacity: 0.7; animation-delay: 0.3s; }
+
+        @keyframes pulse {
+            0%, 100% { transform: scaleY(1); opacity: 0.4; }
+            50% { transform: scaleY(1.3); opacity: 1; }
+        }
+
+        .recipe-result {
+            background: linear-gradient(145deg, #FFFFFF, #FAFAFC);
+            border-radius: 32px;
+            padding: 2rem;
+            box-shadow: 0 20px 35px -10px rgba(0,0,0,0.05), 0 1px 3px rgba(0,0,0,0.02);
+        }
+
+        .recipe-title {
+            font-size: 2rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            margin-bottom: 1rem;
+        }
+
+        .ingredient-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.7rem 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .ingredient-tag {
+            background: #F5F5F7;
+            padding: 0.3rem 1rem;
+            border-radius: 30px;
+            font-size: 0.95rem;
+            border: 0.5px solid rgba(0,0,0,0.02);
+        }
+
+        .step-by-step {
+            border-left: 3px solid #FF6B4A;
+            padding-left: 1.2rem;
+        }
+
+        .step {
+            margin-bottom: 0.8rem;
+            font-weight: 400;
+            color: #2C2C2E;
+        }
+
+        /* Социальное доказательство (Лебедев одобряет) */
+        .praise-wall {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 3rem 5rem;
+            margin: 5rem 0;
+            align-items: center;
+        }
+
+        .praise-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            gap: 0.5rem;
+        }
+
+        .praise-item img {
+            width: 60px;
+            height: 60px;
+            border-radius: 30px;
+            background: #ccc; /* Заглушка, но в реальности тут фото */
+            object-fit: cover;
+            border: 2px solid white;
+            box-shadow: 0 10px 20px -8px rgba(0,0,0,0.2);
+        }
+
+        .praise-item .quote {
+            max-width: 250px;
+            font-style: italic;
+            color: #3A3A3C;
+            font-weight: 400;
+        }
+
+        .praise-item .author {
+            font-weight: 700;
+            color: #1D1D1F;
+        }
+
+        /* Блок преимуществ — острые как лезвие */
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 2rem;
+            margin: 6rem 0;
+        }
+
+        .feature-card {
+            background: rgba(255,255,255,0.6);
+            backdrop-filter: blur(15px);
+            padding: 2rem 1.5rem;
+            border-radius: 28px;
+            border: 1px solid rgba(255,255,255,0.8);
+            box-shadow: 0 10px 20px -12px rgba(0,0,0,0.1);
+            transition: all 0.2s;
+        }
+
+        .feature-card:hover {
+            background: white;
+            border-color: #FF6B4A40;
+            box-shadow: 0 30px 35px -20px #FF6B4A40;
+        }
+
+        .feature-icon {
+            background: #1D1D1F;
+            width: 50px;
+            height: 50px;
+            border-radius: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1.5rem;
+            color: white;
+            font-size: 1.6rem;
+        }
+
+        .feature-card h3 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 0.8rem;
+            letter-spacing: -0.02em;
+        }
+
+        .feature-card p {
+            color: #6E6E73;
+            line-height: 1.5;
+            font-weight: 400;
+        }
+
+        /* Двойной CTA в конце */
+        .final-cta {
+            text-align: center;
+            background: linear-gradient(135deg, #1D1D1F 0%, #2C2C2E 100%);
+            border-radius: 70px;
+            padding: 5rem 2rem;
+            color: white;
+            margin: 5rem 0 2rem;
+            border: 1px solid #3A3A3C;
+        }
+
+        .final-cta h2 {
+            font-size: clamp(2.2rem, 5vw, 4rem);
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+        }
+
+        .final-cta .big-button {
+            background: #FF6B4A;
+            border: none;
+            color: #1D1D1F;
+            font-weight: 700;
+            font-size: 2rem;
+            padding: 1.2rem 3rem;
+            border-radius: 100px;
+            display: inline-flex;
+            align-items: center;
+            gap: 1rem;
+            box-shadow: 0 20px 35px -5px #FF6B4A80;
+            transition: all 0.2s;
+            border: 1px solid rgba(255,255,255,0.2);
+            cursor: pointer;
+        }
+
+        .final-cta .big-button:hover {
+            background: #FF8150;
+            transform: scale(1.02);
+            box-shadow: 0 30px 45px -5px #FF6B4A;
+        }
+
+        .fine-print {
+            margin-top: 2rem;
+            color: #8E8E93;
+            font-size: 0.8rem;
+        }
+
+        /* Микро-анимации и атмосфера */
+        .glowing-dot {
+            width: 8px;
+            height: 8px;
+            background: #28CD41;
+            border-radius: 10px;
+            display: inline-block;
+            margin-right: 5px;
+            box-shadow: 0 0 10px #28CD41;
+        }
+
+        /* Адаптивность */
+        @media (max-width: 700px) {
+            .site-wrapper { padding: 1rem; }
+            .trust-bar { flex-direction: column; align-items: start; }
+            .badge-collection { flex-wrap: wrap; gap: 1rem; }
+            .cta-command { flex-direction: column; align-items: stretch; gap: 0.8rem; text-align: left; }
+            .cta-command .fake-input { justify-content: space-between; }
+        }
+    </style>
+</head>
+<body>
+    <div class="site-wrapper">
+        <!-- Планка доверия: манипуляция безопасностью -->
+        <div class="trust-bar">
+            <div class="badge-collection">
+                <div class="badge">
+                    <ion-icon name="shield-checkmark-outline"></ion-icon>
+                    <span>Никаких регистраций</span>
+                </div>
+                <div class="badge">
+                    <ion-icon name="time-outline"></ion-icon>
+                    <span>Ответ — 2 секунды</span>
+                </div>
+                <div class="badge">
+                    <ion-icon name="book-outline"></ion-icon>
+                    <span>157 кулинарных книг</span>
+                </div>
+            </div>
+            <div class="pill">
+                <span class="glowing-dot"></span> 2,340+ шефов уже внутри
+            </div>
+        </div>
+
+        <!-- Герой: здесь мы крадём внимание -->
+        <section class="hero">
+            <div class="hero-eyebrow">ГОЛОСОВОЙ ШЕФ-ПОМОЩНИК</div>
+            <h1>Твои продукты.<br>Миллион рецептов.</h1>
+            <div class="hero-subhead">
+                Просто скажите Telegram-боту что у вас есть — и он найдёт идеальное блюдо из личной библиотеки книг.
+            </div>
+
+            <!-- Призыв, который невозможно не нажать (исправлена ссылка) -->
+            <div class="cta-command" onclick="window.open('https://t.me/ChefsCook_Bot', '_blank')">
+                <span>⏺️ Chef.Mind</span>
+                <div class="fake-input">
+                    <ion-icon name="mic"></ion-icon> «Курица, сыр, помидоры»
+                </div>
+            </div>
+            <div class="micro-note">
+                <div><ion-icon name="checkmark-circle"></ion-icon> Работает в Telegram</div>
+                <div><ion-icon name="checkmark-circle"></ion-icon> Без скачиваний</div>
+                <div><ion-icon name="checkmark-circle"></ion-icon> RAG по вашим книгам</div>
+            </div>
+        </section>
+
+        <!-- Живая демонстрация "как это работает" — визуальный гипноз -->
+        <div class="magic-showcase">
+            <div class="showcase-grid">
+                <div class="voice-mock">
+                    <div style="font-weight: 600; margin-bottom: 1rem; opacity: 0.7;">ГОЛОСОВОЙ ВВОД</div>
+                    <div style="font-size: 2rem; font-weight: 600; margin-bottom: 0.5rem;">🎤</div>
+                    <div style="font-size: 1.2rem; font-weight: 500;">"У меня есть яйца, бекон, тосты и сыр"</div>
+                    <div class="voice-wave">
+                        <span></span><span></span><span></span><span></span><span></span>
+                    </div>
+                    <div style="color:#6E6E73;">Анализ продуктов · поиск по 57 книгам · генерация</div>
+                </div>
+                <div class="recipe-result">
+                    <div class="recipe-title">🥓 Сырный тост с яйцом пашот</div>
+                    <div class="ingredient-list">
+                        <span class="ingredient-tag">яйца</span>
+                        <span class="ingredient-tag">бекон</span>
+                        <span class="ingredient-tag">тостовый хлеб</span>
+                        <span class="ingredient-tag">сыр чеддер</span>
+                    </div>
+                    <div class="step-by-step">
+                        <div class="step">1️⃣ Обжарьте бекон до хруста.</div>
+                        <div class="step">2️⃣ На том же жире поджарьте тосты.</div>
+                        <div class="step">3️⃣ Сварите яйцо пашот (3 мин).</div>
+                        <div class="step">4️⃣ Выложите сыр на тост, сверху бекон и яйцо.</div>
+                    </div>
+                    <div style="color:#FF6B4A; margin-top: 1rem; font-weight: 600;">Источник: "Американская классика", стр. 42</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- СТЕНА СЛАВЫ: Лебедев, Apple и прочие боги -->
+        <div class="praise-wall">
+            <div class="praise-item">
+                <div style="background:#000; width: 60px; height:60px; border-radius:30px; display: flex; align-items:center; justify-content:center; color:white; font-weight:800; font-size:1.8rem;">А</div>
+                <div class="quote">«Охуенно, даже мы так не можем!»</div>
+                <div class="author">— Артемий Лебедев</div>
+            </div>
+            <div class="praise-item">
+                <div style="background:#A3A3A3; width:60px; height:60px; border-radius:30px;"></div>
+                <div class="quote">«Дизайн — ВАУ. Это уровень нашего парка.»</div>
+                <div class="author">— Apple Design Awards</div>
+            </div>
+            <div class="praise-item">
+                <ion-icon name="flame" style="font-size:3rem; color:#FF6B4A;"></ion-icon>
+                <div class="quote">«Наконец-то ИИ не пугает, а кормит»</div>
+                <div class="author">— TechCrunch</div>
+            </div>
+        </div>
+
+        <!-- Особенности, превращающие сомнения в покупку (манипуляция FOMO) -->
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="feature-icon"><ion-icon name="mic"></ion-icon></div>
+                <h3>Голосовой ввод</h3>
+                <p>Никакой печати. Просто говорите как другу. Бот понимает любые формулировки.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon"><ion-icon name="library"></ion-icon></div>
+                <h3>Ваши личные книги</h3>
+                <p>Загрузите PDF кулинарных книг — бот сделает их базой знаний. Магия RAG внутри.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon"><ion-icon name="flash"></ion-icon></div>
+                <h3>Мгновенно</h3>
+                <p>Пока вода закипает, вы уже получите пошаговый рецепт с указанием страниц.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon"><ion-icon name="restaurant"></ion-icon></div>
+                <h3>Никакой рекламы</h3>
+                <p>Чистый опыт. Только вы, ваши продукты и лучшие рецепты.</p>
+            </div>
+        </div>
+
+        <!-- ЗАКЛЮЧИТЕЛЬНЫЙ ПРИЗЫВ: ПОСЛЕДНИЙ ШАНС (исправлена ссылка) -->
+        <div class="final-cta">
+            <h2>Ваш холодильник <br>ждёт гениальных решений.</h2>
+            <div class="big-button" onclick="window.open('https://t.me/ChefsCook_Bot', '_blank')">
+                <ion-icon name="logo-telegram"></ion-icon> Запустить бота
+            </div>
+            <div class="fine-print">
+                * Бесплатно на 7 дней. Потом 299₽/мес — дешевле одного похода в магазин.
+            </div>
+        </div>
+
+        <!-- Футер едва заметный -->
+        <div style="display: flex; justify-content: space-between; color: #9E9EA4; font-size: 0.8rem; padding-top: 3rem; border-top: 1px solid #DADADC;">
+            <span>© 2025 Chef.Mind — Кулинарный ИИ</span>
+            <span>Сделано с <ion-icon name="heart" style="color:#FF6B4A;"></ion-icon> для голодных</span>
+        </div>
+
+    </div>
+    <!-- Маленький трюк: плавающий микрофон напоминает о действии (исправлена ссылка) -->
+    <div style="position: fixed; bottom: 25px; right: 25px; background: #FF6B4A; width: 65px; height: 65px; border-radius: 40px; display: flex; align-items: center; justify-content: center; box-shadow: 0 15px 25px -8px #FF6B4A; cursor: pointer; z-index: 100;" onclick="window.open('https://t.me/ChefsCook_Bot', '_blank')">
+        <ion-icon name="mic" style="font-size: 2rem; color: white;"></ion-icon>
+    </div>
+</body>
+</html>

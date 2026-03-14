@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <title>Chef.Mind — Дашборд статистики</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&display=swap" rel="stylesheet">
+    <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
+    <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
+    <style>
+        /* базовые стили как в лендинге */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            background-color: #F5F5F7;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            line-height: 1.3;
+            color: #1D1D1F;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+        .dashboard-wrapper {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        /* шапка дашборда */
+        .dashboard-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2.5rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+        .dashboard-header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            background: linear-gradient(135deg, #1D1D1F 0%, #3A3A3C 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .back-link {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: #FFFFFF;
+            padding: 0.7rem 1.5rem;
+            border-radius: 40px;
+            font-weight: 500;
+            color: #1D1D1F;
+            text-decoration: none;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.02);
+            border: 1px solid rgba(0,0,0,0.05);
+            transition: all 0.2s;
+        }
+        .back-link:hover {
+            background: #1D1D1F;
+            color: white;
+        }
+        /* сетка карточек */
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.8rem;
+            margin-bottom: 2.5rem;
+        }
+        .metric-card {
+            background: rgba(255,255,255,0.7);
+            backdrop-filter: blur(15px);
+            border-radius: 32px;
+            padding: 1.8rem 1.5rem;
+            border: 1px solid rgba(255,255,255,0.8);
+            box-shadow: 0 15px 25px -12px rgba(0,0,0,0.05);
+            transition: transform 0.2s;
+        }
+        .metric-card:hover {
+            transform: translateY(-5px);
+            background: white;
+            border-color: #FF6B4A40;
+            box-shadow: 0 25px 30px -15px #FF6B4A30;
+        }
+        .metric-header {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            margin-bottom: 1.2rem;
+            color: #6E6E73;
+            font-weight: 500;
+        }
+        .metric-header ion-icon {
+            font-size: 2rem;
+            color: #FF6B4A;
+        }
+        .metric-value {
+            font-size: 3.2rem;
+            font-weight: 700;
+            line-height: 1;
+            margin-bottom: 0.5rem;
+            letter-spacing: -0.02em;
+        }
+        .metric-trend {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.95rem;
+            color: #6E6E73;
+        }
+        .trend-up { color: #28CD41; }
+        .trend-down { color: #FF3B30; }
+        /* вторая сетка для более сложных блоков */
+        .charts-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 1.8rem;
+            margin-bottom: 2.5rem;
+        }
+        @media (max-width: 900px) {
+            .charts-grid { grid-template-columns: 1fr; }
+        }
+        .chart-card {
+            background: white;
+            border-radius: 36px;
+            padding: 2rem;
+            box-shadow: 0 20px 35px -10px rgba(0,0,0,0.03);
+            border: 1px solid rgba(0,0,0,0.02);
+        }
+        .chart-title {
+            font-size: 1.4rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        /* имитация графика */
+        .bar-chart {
+            display: flex;
+            align-items: flex-end;
+            gap: 0.8rem;
+            height: 200px;
+            margin-top: 1rem;
+        }
+        .bar-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .bar {
+            width: 100%;
+            background: #FF6B4A;
+            border-radius: 12px 12px 4px 4px;
+            transition: height 0.3s;
+            min-height: 4px;
+        }
+        .bar-label {
+            font-size: 0.8rem;
+            color: #6E6E73;
+        }
+        /* топ-ингредиенты */
+        .ingredients-list {
+            list-style: none;
+        }
+        .ingredient-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.8rem 0;
+            border-bottom: 1px solid rgba(0,0,0,0.03);
+        }
+        .ingredient-name {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+        }
+        .ingredient-rank {
+            background: #F5F5F7;
+            width: 28px;
+            height: 28px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            color: #FF6B4A;
+        }
+        .ingredient-count {
+            font-weight: 600;
+            color: #1D1D1F;
+        }
+        /* маленькие дополнительные метрики */
+        .mini-stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+        .mini-stat {
+            background: #F5F5F7;
+            border-radius: 20px;
+            padding: 1rem;
+            text-align: center;
+        }
+        .mini-stat .label {
+            color: #6E6E73;
+            font-size: 0.9rem;
+            margin-bottom: 0.3rem;
+        }
+        .mini-stat .number {
+            font-weight: 700;
+            font-size: 1.5rem;
+        }
+        .footer-note {
+            margin-top: 3rem;
+            text-align: center;
+            color: #8E8E93;
+            font-size: 0.9rem;
+            border-top: 1px solid #DADADC;
+            padding-top: 2rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-wrapper">
+        <!-- Шапка -->
+        <div class="dashboard-header">
+            <h1>📊 Дашборд Chef.Mind</h1>
+            <a href="index.html" class="back-link"><ion-icon name="arrow-back-outline"></ion-icon> На лендинг</a>
+        </div>
+
+        <!-- Основные метрики -->
+        <div class="metrics-grid">
+            <div class="metric-card">
+                <div class="metric-header">
+                    <ion-icon name="people-outline"></ion-icon>
+                    <span>Всего пользователей</span>
+                </div>
+                <div class="metric-value">2,456</div>
+                <div class="metric-trend">
+                    <ion-icon name="arrow-up-outline" class="trend-up"></ion-icon>
+                    <span>+12% за неделю</span>
+                </div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-header">
+                    <ion-icon name="flash-outline"></ion-icon>
+                    <span>Активных сегодня</span>
+                </div>
+                <div class="metric-value">342</div>
+                <div class="metric-trend">
+                    <ion-icon name="arrow-up-outline" class="trend-up"></ion-icon>
+                    <span>пик в 19:00</span>
+                </div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-header">
+                    <ion-icon name="chatbubbles-outline"></ion-icon>
+                    <span>Всего запросов</span>
+                </div>
+                <div class="metric-value">12.8K</div>
+                <div class="metric-trend">
+                    <ion-icon name="arrow-up-outline" class="trend-up"></ion-icon>
+                    <span>+5.2% за месяц</span>
+                </div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-header">
+                    <ion-icon name="time-outline"></ion-icon>
+                    <span>Среднее время ответа</span>
+                </div>
+                <div class="metric-value">1.2 <span style="font-size:1.2rem;">сек</span></div>
+                <div class="metric-trend">
+                    <ion-icon name="arrow-down-outline" class="trend-down"></ion-icon>
+                    <span>-0.3 сек</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Графики и топы -->
+        <div class="charts-grid">
+            <!-- Активность по дням -->
+            <div class="chart-card">
+                <div class="chart-title">
+                    <ion-icon name="calendar-outline"></ion-icon> Запросов за последние 7 дней
+                </div>
+                <div class="bar-chart">
+                    <div class="bar-container"><div class="bar" style="height: 120px;"></div><div class="bar-label">Пн</div></div>
+                    <div class="bar-container"><div class="bar" style="height: 90px;"></div><div class="bar-label">Вт</div></div>
+                    <div class="bar-container"><div class="bar" style="height: 150px;"></div><div class="bar-label">Ср</div></div>
+                    <div class="bar-container"><div class="bar" style="height: 180px;"></div><div class="bar-label">Чт</div></div>
+                    <div class="bar-container"><div class="bar" style="height: 200px;"></div><div class="bar-label">Пт</div></div>
+                    <div class="bar-container"><div class="bar" style="height: 170px;"></div><div class="bar-label">Сб</div></div>
+                    <div class="bar-container"><div class="bar" style="height: 110px;"></div><div class="bar-label">Вс</div></div>
+                </div>
+                <div style="margin-top:1rem; color:#6E6E73; font-size:0.9rem;">Пик в пятницу — 245 запросов</div>
+            </div>
+
+            <!-- Популярные ингредиенты -->
+            <div class="chart-card">
+                <div class="chart-title">
+                    <ion-icon name="restaurant-outline"></ion-icon> Топ-5 ингредиентов
+                </div>
+                <ul class="ingredients-list">
+                    <li class="ingredient-item"><span class="ingredient-name"><span class="ingredient-rank">1</span> Курица</span><span class="ingredient-count">1,2K запросов</span></li>
+                    <li class="ingredient-item"><span class="ingredient-name"><span class="ingredient-rank">2</span> Картошка</span><span class="ingredient-count">980</span></li>
+                    <li class="ingredient-item"><span class="ingredient-name"><span class="ingredient-rank">3</span> Яйца</span><span class="ingredient-count">845</span></li>
+                    <li class="ingredient-item"><span class="ingredient-name"><span class="ingredient-rank">4</span> Лук</span><span class="ingredient-count">720</span></li>
+                    <li class="ingredient-item"><span class="ingredient-name"><span class="ingredient-rank">5</span> Сыр</span><span class="ingredient-count">610</span></li>
+                </ul>
+                <div class="mini-stats">
+                    <div class="mini-stat"><div class="label">Голосовых</div><div class="number">64%</div></div>
+                    <div class="mini-stat"><div class="label">Текстовых</div><div class="number">36%</div></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Дополнительные метрики: популярные книги, рецепты, гео -->
+        <div class="metrics-grid" style="margin-top:1rem;">
+            <div class="metric-card">
+                <div class="metric-header">
+                    <ion-icon name="book-outline"></ion-icon>
+                    <span>Самая популярная книга</span>
+                </div>
+                <div style="font-weight:600; font-size:1.4rem; margin-bottom:0.3rem;">«1000 рецептов старинной кухни»</div>
+                <div style="color:#6E6E73;">упоминается в 23% запросов</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-header">
+                    <ion-icon name="search-outline"></ion-icon>
+                    <span>Самый частый запрос</span>
+                </div>
+                <div style="font-weight:600; font-size:1.4rem; margin-bottom:0.3rem;">«что приготовить из курицы»</div>
+                <div style="color:#6E6E73;">187 раз за неделю</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-header">
+                    <ion-icon name="location-outline"></ion-icon>
+                    <span>География</span>
+                </div>
+                <div style="font-weight:600; font-size:1.4rem; margin-bottom:0.3rem;">Россия</div>
+                <div style="color:#6E6E73;">Москва, СПб, Екатеринбург</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-header">
+                    <ion-icon name="bar-chart-outline"></ion-icon>
+                    <span>Конверсия в рецепт</span>
+                </div>
+                <div style="font-weight:600; font-size:2.2rem; margin-bottom:0.3rem;">92%</div>
+                <div style="color:#6E6E73;">запросов с ответом</div>
+            </div>
+        </div>
+
+        <!-- Воронка (простая) -->
+        <div style="background: white; border-radius: 48px; padding: 2.5rem; margin-top: 2.5rem;">
+            <h2 style="font-size: 1.8rem; font-weight: 700; margin-bottom: 2rem;">Воронка продукта</h2>
+            <div style="display: flex; flex-wrap: wrap; gap: 2rem; justify-content: space-around;">
+                <div style="text-align:center; flex:1;"><div style="background:#FF6B4A; width:100%; height:8px; border-radius:8px;"></div><div style="margin-top:0.8rem;"><strong>100%</strong><br>лендинг</div></div>
+                <div style="text-align:center; flex:1;"><div style="background:#FF6B4A; width:85%; height:8px; border-radius:8px;"></div><div style="margin-top:0.8rem;"><strong>85%</strong><br>перешли в бота</div></div>
+                <div style="text-align:center; flex:1;"><div style="background:#FF6B4A; width:67%; height:8px; border-radius:8px;"></div><div style="margin-top:0.8rem;"><strong>67%</strong><br>отправили /start</div></div>
+                <div style="text-align:center; flex:1;"><div style="background:#FF6B4A; width:50%; height:8px; border-radius:8px;"></div><div style="margin-top:0.8rem;"><strong>50%</strong><br>авторизовались</div></div>
+                <div style="text-align:center; flex:1;"><div style="background:#FF6B4A; width:41%; height:8px; border-radius:8px;"></div><div style="margin-top:0.8rem;"><strong>41%</strong><br>сделали запрос</div></div>
+                <div style="text-align:center; flex:1;"><div style="background:#FF6B4A; width:38%; height:8px; border-radius:8px;"></div><div style="margin-top:0.8rem;"><strong>38%</strong><br>получили рецепт</div></div>
+            </div>
+        </div>
+
+        <!-- Футер -->
+        <div class="footer-note">
+            Данные обновляются в реальном времени. <ion-icon name="sync-outline"></ion-icon> последняя синхронизация: 5 секунд назад
+        </div>
+    </div>
+
+    <!-- Плавающая кнопка быстрого доступа к боту (как в лендинге) -->
+    <div style="position: fixed; bottom: 25px; right: 25px; background: #FF6B4A; width: 65px; height: 65px; border-radius: 40px; display: flex; align-items: center; justify-content: center; box-shadow: 0 15px 25px -8px #FF6B4A; cursor: pointer; z-index: 100;" onclick="window.open('https://t.me/ChefsCook_Bot', '_blank')">
+        <ion-icon name="mic" style="font-size: 2rem; color: white;"></ion-icon>
+    </div>
+</body>
+</html>

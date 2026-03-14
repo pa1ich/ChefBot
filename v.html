@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <title>Chef.Mind — Воронка продукта</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&display=swap" rel="stylesheet">
+    <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
+    <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            background-color: #F5F5F7;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            line-height: 1.3;
+            color: #1D1D1F;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+        .funnel-wrapper {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        /* шапка */
+        .funnel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 3rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+        .funnel-header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            background: linear-gradient(135deg, #1D1D1F 0%, #3A3A3C 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .nav-links {
+            display: flex;
+            gap: 1rem;
+        }
+        .nav-link {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: #FFFFFF;
+            padding: 0.7rem 1.5rem;
+            border-radius: 40px;
+            font-weight: 500;
+            color: #1D1D1F;
+            text-decoration: none;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.02);
+            border: 1px solid rgba(0,0,0,0.05);
+            transition: all 0.2s;
+        }
+        .nav-link:hover {
+            background: #1D1D1F;
+            color: white;
+        }
+        /* карточка с общей статистикой */
+        .stats-overview {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 3rem;
+        }
+        .stat-card {
+            background: rgba(255,255,255,0.7);
+            backdrop-filter: blur(15px);
+            border-radius: 32px;
+            padding: 1.8rem 1.5rem;
+            border: 1px solid rgba(255,255,255,0.8);
+            box-shadow: 0 15px 25px -12px rgba(0,0,0,0.05);
+            text-align: center;
+        }
+        .stat-card .label {
+            color: #6E6E73;
+            font-size: 0.95rem;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+        .stat-card .value {
+            font-size: 2.8rem;
+            font-weight: 700;
+            line-height: 1;
+            letter-spacing: -0.02em;
+        }
+        .stat-card .sub {
+            color: #6E6E73;
+            font-size: 0.9rem;
+            margin-top: 0.5rem;
+        }
+
+        /* блок воронки */
+        .funnel-container {
+            background: white;
+            border-radius: 48px;
+            padding: 2.5rem;
+            margin-bottom: 3rem;
+            box-shadow: 0 30px 50px -20px rgba(0,0,0,0.1);
+        }
+        .funnel-title {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 2rem;
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+        }
+        .funnel-title ion-icon {
+            color: #FF6B4A;
+            font-size: 2rem;
+        }
+
+        /* ступени воронки */
+        .funnel-steps {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+        .step {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            flex-wrap: wrap;
+        }
+        .step-info {
+            flex: 0 0 200px;
+        }
+        .step-name {
+            font-weight: 600;
+            font-size: 1.2rem;
+            margin-bottom: 0.2rem;
+        }
+        .step-count {
+            color: #6E6E73;
+            font-size: 0.9rem;
+        }
+        .step-bar-container {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        .step-bar {
+            height: 48px;
+            background: linear-gradient(90deg, #FF6B4A, #FF9F7A);
+            border-radius: 30px;
+            transition: width 0.3s;
+            min-width: 20px;
+            box-shadow: 0 5px 15px -5px #FF6B4A;
+        }
+        .step-percent {
+            font-weight: 700;
+            font-size: 1.3rem;
+            min-width: 70px;
+            text-align: right;
+        }
+        .step-drop {
+            color: #6E6E73;
+            font-size: 0.9rem;
+        }
+
+        /* таблица конверсии */
+        .conversion-table {
+            margin-top: 3rem;
+            background: #F5F5F7;
+            border-radius: 32px;
+            padding: 1.8rem;
+        }
+        .conversion-table h3 {
+            margin-bottom: 1.5rem;
+            font-size: 1.3rem;
+            font-weight: 600;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th {
+            text-align: left;
+            padding: 0.8rem 0.5rem;
+            color: #6E6E73;
+            font-weight: 500;
+            font-size: 0.9rem;
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+        }
+        td {
+            padding: 0.8rem 0.5rem;
+            border-bottom: 1px solid rgba(0,0,0,0.03);
+        }
+        .badge {
+            background: #FF6B4A;
+            color: white;
+            padding: 0.2rem 0.8rem;
+            border-radius: 30px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+        .footer-note {
+            margin-top: 3rem;
+            text-align: center;
+            color: #8E8E93;
+            font-size: 0.9rem;
+            border-top: 1px solid #DADADC;
+            padding-top: 2rem;
+        }
+        @media (max-width: 700px) {
+            .step {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 0.5rem;
+            }
+            .step-bar-container {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="funnel-wrapper">
+        <!-- шапка -->
+        <div class="funnel-header">
+            <h1>📈 Воронка продукта</h1>
+            <div class="nav-links">
+                <a href="index.html" class="nav-link"><ion-icon name="home-outline"></ion-icon> Лендинг</a>
+                <a href="dashboard.html" class="nav-link"><ion-icon name="stats-chart-outline"></ion-icon> Дашборд</a>
+            </div>
+        </div>
+
+        <!-- краткая статистика -->
+        <div class="stats-overview">
+            <div class="stat-card">
+                <div class="label"><ion-icon name="people-outline"></ion-icon> Всего достигли низа</div>
+                <div class="value">912</div>
+                <div class="sub">получили рецепт</div>
+            </div>
+            <div class="stat-card">
+                <div class="label"><ion-icon name="arrow-up-outline"></ion-icon> Общая конверсия</div>
+                <div class="value">38%</div>
+                <div class="sub">от лендинга до рецепта</div>
+            </div>
+            <div class="stat-card">
+                <div class="label"><ion-icon name="time-outline"></ion-icon> Среднее время</div>
+                <div class="value">4.2 мин</div>
+                <div class="sub">от /start до рецепта</div>
+            </div>
+        </div>
+
+        <!-- детальная воронка -->
+        <div class="funnel-container">
+            <div class="funnel-title">
+                <ion-icon name="funnel-outline"></ion-icon> Путь пользователя
+            </div>
+            <div class="funnel-steps">
+                <!-- этап 1: лендинг -->
+                <div class="step">
+                    <div class="step-info">
+                        <div class="step-name">Посещение лендинга</div>
+                        <div class="step-count">2,456 человек</div>
+                    </div>
+                    <div class="step-bar-container">
+                        <div class="step-bar" style="width: 100%;"></div>
+                        <span class="step-percent">100%</span>
+                    </div>
+                    <div class="step-drop"></div>
+                </div>
+                <!-- этап 2: переход в бота -->
+                <div class="step">
+                    <div class="step-info">
+                        <div class="step-name">Переход в Telegram</div>
+                        <div class="step-count">2,089 (85%)</div>
+                    </div>
+                    <div class="step-bar-container">
+                        <div class="step-bar" style="width: 85%;"></div>
+                        <span class="step-percent">85%</span>
+                    </div>
+                    <div class="step-drop">-15%</div>
+                </div>
+                <!-- этап 3: запуск бота (/start) -->
+                <div class="step">
+                    <div class="step-info">
+                        <div class="step-name">Отправили /start</div>
+                        <div class="step-count">1,646 (67%)</div>
+                    </div>
+                    <div class="step-bar-container">
+                        <div class="step-bar" style="width: 67%;"></div>
+                        <span class="step-percent">67%</span>
+                    </div>
+                    <div class="step-drop">-18%</div>
+                </div>
+                <!-- этап 4: авторизация -->
+                <div class="step">
+                    <div class="step-info">
+                        <div class="step-name">Авторизовались (/auth)</div>
+                        <div class="step-count">1,228 (50%)</div>
+                    </div>
+                    <div class="step-bar-container">
+                        <div class="step-bar" style="width: 50%;"></div>
+                        <span class="step-percent">50%</span>
+                    </div>
+                    <div class="step-drop">-17%</div>
+                </div>
+                <!-- этап 5: сделали запрос (голос/текст) -->
+                <div class="step">
+                    <div class="step-info">
+                        <div class="step-name">Сделали запрос</div>
+                        <div class="step-count">1,007 (41%)</div>
+                    </div>
+                    <div class="step-bar-container">
+                        <div class="step-bar" style="width: 41%;"></div>
+                        <span class="step-percent">41%</span>
+                    </div>
+                    <div class="step-drop">-9%</div>
+                </div>
+                <!-- этап 6: получили рецепт -->
+                <div class="step">
+                    <div class="step-info">
+                        <div class="step-name">Получили рецепт</div>
+                        <div class="step-count">912 (37%)</div>
+                    </div>
+                    <div class="step-bar-container">
+                        <div class="step-bar" style="width: 37%;"></div>
+                        <span class="step-percent">37%</span>
+                    </div>
+                    <div class="step-drop">-4%</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- таблица конверсии между этапами -->
+        <div class="conversion-table">
+            <h3>📊 Конверсия между этапами</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Этап A → Этап B</th>
+                        <th>Процент</th>
+                        <th>Потеряно</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Лендинг → Переход в бота</td>
+                        <td><span class="badge">85%</span></td>
+                        <td>367 чел.</td>
+                    </tr>
+                    <tr>
+                        <td>Переход → /start</td>
+                        <td><span class="badge">79%</span></td>
+                        <td>443 чел.</td>
+                    </tr>
+                    <tr>
+                        <td>/start → Авторизация</td>
+                        <td><span class="badge">75%</span></td>
+                        <td>418 чел.</td>
+                    </tr>
+                    <tr>
+                        <td>Авторизация → Запрос</td>
+                        <td><span class="badge">82%</span></td>
+                        <td>221 чел.</td>
+                    </tr>
+                    <tr>
+                        <td>Запрос → Рецепт</td>
+                        <td><span class="badge">91%</span></td>
+                        <td>95 чел.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- дополнительная информация по времени -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-top: 2rem;">
+            <div style="background: white; border-radius: 32px; padding: 1.8rem;">
+                <h4 style="display: flex; gap:0.5rem; margin-bottom:1rem;"><ion-icon name="hourglass-outline"></ion-icon> Среднее время на этапе</h4>
+                <ul style="list-style:none;">
+                    <li style="display:flex; justify-content:space-between; padding:0.6rem 0; border-bottom:1px solid #eee;">Открытие бота → авторизация <span>45 сек</span></li>
+                    <li style="display:flex; justify-content:space-between; padding:0.6rem 0; border-bottom:1px solid #eee;">Авторизация → запрос <span>2 мин 10 сек</span></li>
+                    <li style="display:flex; justify-content:space-between; padding:0.6rem 0;">Запрос → ответ <span>1.5 сек</span></li>
+                </ul>
+            </div>
+            <div style="background: white; border-radius: 32px; padding: 1.8rem;">
+                <h4 style="display: flex; gap:0.5rem; margin-bottom:1rem;"><ion-icon name="calendar-outline"></ion-icon> Конверсия по дням</h4>
+                <div style="display:flex; gap:0.5rem; align-items:flex-end; height:120px;">
+                    <div style="flex:1; display:flex; flex-direction:column; align-items:center;"><div style="width:100%; background:#FF6B4A; height:76px; border-radius:8px;"></div><span style="margin-top:5px;">Пн</span></div>
+                    <div style="flex:1; display:flex; flex-direction:column; align-items:center;"><div style="width:100%; background:#FF6B4A; height:90px; border-radius:8px;"></div><span>Вт</span></div>
+                    <div style="flex:1; display:flex; flex-direction:column; align-items:center;"><div style="width:100%; background:#FF6B4A; height:82px; border-radius:8px;"></div><span>Ср</span></div>
+                    <div style="flex:1; display:flex; flex-direction:column; align-items:center;"><div style="width:100%; background:#FF6B4A; height:105px; border-radius:8px;"></div><span>Чт</span></div>
+                    <div style="flex:1; display:flex; flex-direction:column; align-items:center;"><div style="width:100%; background:#FF6B4A; height:110px; border-radius:8px;"></div><span>Пт</span></div>
+                    <div style="flex:1; display:flex; flex-direction:column; align-items:center;"><div style="width:100%; background:#FF6B4A; height:65px; border-radius:8px;"></div><span>Сб</span></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- футер -->
+        <div class="footer-note">
+            <ion-icon name="analytics-outline"></ion-icon> Данные за последние 30 дней. Обновление каждые 5 минут.
+        </div>
+    </div>
+
+    <!-- плавающая кнопка с микрофоном как в лендинге -->
+    <div style="position: fixed; bottom: 25px; right: 25px; background: #FF6B4A; width: 65px; height: 65px; border-radius: 40px; display: flex; align-items: center; justify-content: center; box-shadow: 0 15px 25px -8px #FF6B4A; cursor: pointer; z-index: 100;" onclick="window.open('https://t.me/ChefsCook_Bot', '_blank')">
+        <ion-icon name="mic" style="font-size: 2rem; color: white;"></ion-icon>
+    </div>
+</body>
+</html>
