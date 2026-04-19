@@ -44,6 +44,7 @@ Output: Ответ возвращается пользователю с указ
    Это исключает галлюцинации и гарантирует проверяемость ответа.
 📍 **Код находится в файле `main.py`, класс `PineconeRAG`, методы `search()` и `ask()`.**
 Код, подтверждающий RAG-архитектуру
+
 ```
 # ========== 1. RETRIEVAL (Поиск релевантных данных в векторной БД) ==========
 def search(self, query: str, top_k: int = 5):
@@ -98,9 +99,9 @@ async def ask(self, query: str) -> str:
     # ========== 3. GENERATION (Генерация ответа через LLM) ==========
     main_answer = await self._call_ollama(primary_prompt)
     return main_answer
-    ```
+```
 
-    ```
+```
     # ========== RAG класс для Pinecone (поддержка нескольких книг) ==========
 class PineconeRAG:
     def __init__(self, api_key: str, index_name: str, namespace: str, host: str, pdf_paths: list):
