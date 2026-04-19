@@ -46,7 +46,7 @@ Output: Ответ возвращается пользователю с указ
 Код, подтверждающий RAG-архитектуру
 
 ```
-# ========== 1. RETRIEVAL (Поиск релевантных данных в векторной БД) ==========
+# 1. RETRIEVAL (Поиск релевантных данных в векторной БД) 
 def search(self, query: str, top_k: int = 5):
     # Преобразуем текстовый запрос в векторное представление
     query_emb = self.embedder.encode(query).tolist()
@@ -64,13 +64,13 @@ def search(self, query: str, top_k: int = 5):
     for match in results.matches:
         chunks.append({
             "text": match.metadata.get("text", ""),
-            "source": match.metadata.get("source", ""),  # 📚 Название книги
-            "page": match.metadata.get("page", 0),       # 📄 Номер страницы
+            "source": match.metadata.get("source", ""), 
+            "page": match.metadata.get("page", 0),       
             "score": match.score
         })
     return chunks
 
-# ========== 2. AUGMENTATION (Дополнение промпта контекстом) ==========
+# 2. AUGMENTATION (Дополнение промпта контекстом)
 async def ask(self, query: str) -> str:
     # Получаем релевантные чанки из базы знаний
     chunks = self.search(query, top_k=5)
@@ -87,22 +87,21 @@ async def ask(self, query: str) -> str:
     primary_prompt = f"""Ты — опытный шеф-повар, помогающий по старинным кулинарным книгам. 
 У пользователя есть ингредиенты: {query}. 
 Ниже приведены отрывки из книг, наиболее похожие на запрос. 
-**Выбери самый подходящий рецепт из контекста и опиши его пошагово.** 
+Выбери самый подходящий рецепт из контекста и опиши его пошагово.
 Обязательно укажи, из какой книги и с какой страницы взят рецепт (формат: [Книга: название, стр. X]).
 Не придумывай новые рецепты, используй только информацию из контекста.
 
 Контекст:
 {primary_context}
 
-Рецепт:"""
-
-    # ========== 3. GENERATION (Генерация ответа через LLM) ==========
+Рецепт:
+# 3. GENERATION (Генерация ответа через LLM) 
     main_answer = await self._call_ollama(primary_prompt)
     return main_answer
 ```
 
 ```
-    # ========== RAG класс для Pinecone (поддержка нескольких книг) ==========
+# RAG класс для Pinecone (поддержка нескольких книг)
 class PineconeRAG:
     def __init__(self, api_key: str, index_name: str, namespace: str, host: str, pdf_paths: list):
         self.index_name = index_name
@@ -110,8 +109,6 @@ class PineconeRAG:
         self.pdf_paths = pdf_paths
         self.ollama_base_url = "http://localhost:11434"
         self.llm_model = "qwen2.5:3b"  # ⚡ Рекомендуемая быстрая и качественная модель
-
-        # Подключаемся к Pinecone
         self.pc = pinecone.Pinecone(api_key=api_key)
         self.index = self.pc.Index(host=host)
 
@@ -124,7 +121,6 @@ class PineconeRAG:
         self._load_and_index_all_pdfs()
 
     def _extract_text_from_pdf(self, pdf_path: str) -> list[tuple[int, str]]:
-        """Извлекает текст из одного PDF постранично. Возвращает список (номер_страницы, текст_страницы)."""
         reader = PdfReader(pdf_path)
         pages = []
         for i, page in enumerate(reader.pages):
@@ -148,7 +144,6 @@ class PineconeRAG:
         return hashlib.md5(unique.encode()).hexdigest()[:16]
 
     def _load_and_index_all_pdfs(self):
-        """Загружает все PDF, разбивает на чанки и индексирует в Pinecone."""
         # Очищаем namespace перед загрузкой
         try:
             print(f"⚠️ Очищаем namespace '{self.namespace}' от старых векторов...")
